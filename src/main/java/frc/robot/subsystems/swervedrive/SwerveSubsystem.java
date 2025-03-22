@@ -7,6 +7,7 @@ package frc.robot.subsystems.swervedrive;
 import static edu.wpi.first.units.Units.Meter;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.config.PIDConstants;
@@ -33,6 +34,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import frc.robot.Constants;
+import frc.robot.subsystems.Arm;
+
 //import frc.robot.subsystems.swervedrive.Vision.Cameras;
 import java.io.File;
 import java.io.IOException;
@@ -125,6 +128,7 @@ public class SwerveSubsystem extends SubsystemBase
                                   Constants.MAX_SPEED,
                                   new Pose2d(new Translation2d(Meter.of(2), Meter.of(0)),
                                              Rotation2d.fromDegrees(0)));
+    
   }
 
   /**
@@ -135,25 +139,6 @@ public class SwerveSubsystem extends SubsystemBase
     vision = new Vision(swerveDrive::getPose, swerveDrive.field);
   }*/
 
-  @Override
-  public void periodic()
-  {swerveDrive.updateOdometry();
-    // When vision is enabled we must manually update odometry in SwerveDrive
-    /*if (visionDriveTest)
-    {
-      swerveDrive.updateOdometry();
-      //vision.updatePoseEstimation(swerveDrive);
-    }*/
-  }
-
-  @Override
-  public void simulationPeriodic()
-  {
-  }
-
-  /**
-   * Setup AutoBuilder for PathPlanner.
-   */
   public void setupPathPlanner()
   {
     // Load the RobotConfig from the GUI settings. You should probably
@@ -221,6 +206,24 @@ public class SwerveSubsystem extends SubsystemBase
     // IF USING CUSTOM PATHFINDER ADD BEFORE THIS LINE
     PathfindingCommand.warmupCommand().schedule();
   }
+
+  @Override
+  public void periodic()
+  {swerveDrive.updateOdometry();
+    // When vision is enabled we must manually update odometry in SwerveDrive
+    /*if (visionDriveTest)
+    {
+      swerveDrive.updateOdometry();
+      //vision.updatePoseEstimation(swerveDrive);
+    }*/
+  }
+
+  @Override
+  public void simulationPeriodic()
+  {
+  }
+
+
 
   /**
    * Aim the robot at the target returned by PhotonVision.

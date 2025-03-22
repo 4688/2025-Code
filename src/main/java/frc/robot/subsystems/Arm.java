@@ -21,18 +21,18 @@ public class Arm extends SubsystemBase {
   SparkMax intake2;
   SparkMax coral;
 
-  double l1;
-  double l12;
-  double l2;
-  double l22;
-  double l3;
-  double l32;
+  double l1 = 7.047;
+  double l12 = -7.07;
+  double l2 = 28.7;
+  double l22 = -28.7;
+  double l3 = 65.3;
+  double l32 = -65.3;
   double l4;
   double l42;
-  double a1;
-  double a12;
-  double a2;
-  double a22;
+  double a1 = 27.9;
+  double a12 = -27.9;
+  double a2 = 50.7;
+  double a22 = -50.7;
 
   /* Creates a new ExampleSubsystem. */
   public Arm() {
@@ -44,10 +44,10 @@ public class Arm extends SubsystemBase {
     coral = new SparkMax(20, MotorType.kBrushless);
 
   }
-  private static double algaeIntakeSpeed = 0.5;
-  private static double algaeOutakeSpeed = 0.5;
+  private static double algaeIntakeSpeed = 0.75;
+  private static double algaeOutakeSpeed = 0.75;
   private static double algaeHoldspeed = 0;
-  private static double elevatorHoldSpeed = 0.02;
+  private static double elevatorHoldSpeed = 0.03;
   /**
    * Example command factory method.
    *
@@ -136,9 +136,17 @@ public class Arm extends SubsystemBase {
 
   //goto elevator level - get encoder values
   public void gotoLevel(double level, double level2){
-    if (elevator1.getEncoder().getPosition() <= level && elevator2.getEncoder().getPosition() >= level2){
+    if (elevator1.getEncoder().getPosition() < level && elevator2.getEncoder().getPosition() > level2){
         elevator1.set(espeed);
         elevator2.set(-espeed);
+    }
+    else if (elevator1.getEncoder().getPosition() > level+0.5 && elevator2.getEncoder().getPosition() < level2-0.5){
+      elevator1.set(-espeed);
+        elevator2.set(espeed);
+    }
+    else{
+      elevator1.set(elevatorHoldSpeed);
+      elevator2.set(-elevatorHoldSpeed);
     }
   }
 
@@ -148,7 +156,7 @@ public class Arm extends SubsystemBase {
 
 
   public Command Autogotolevel1(){
-    return runOnce(()-> {if (autotrue()== true){gotoLevel(l1, l12);}});
+    return runOnce(() -> {gotoLevel(l1, l12);});
   }
   public Command Autogotolevel2(){
     return runOnce(()-> {if (autotrue()== true){gotoLevel(l2, l22);}});

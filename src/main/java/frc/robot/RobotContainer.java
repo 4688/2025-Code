@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -14,6 +15,8 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -76,14 +79,22 @@ public class RobotContainer
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
+  private final SendableChooser<Command> autoChooser;
   public RobotContainer()
   {
+    
     // Configure the trigger bindings
     configureBindings();
     DriverStation.silenceJoystickConnectionWarning(true);
-    NamedCommands.registerCommand("test", Commands.print("I EXIST"));
-  }
+    //NamedCommands.registerCommand("test", Commands.print("I EXIST"));
+    NamedCommands.registerCommand("lvl1",arm.gotoAlgaelevel1());
+    NamedCommands.registerCommand("lvl2",arm.gotoAlgaelevel2());
 
+     autoChooser = AutoBuilder.buildAutoChooser("test");
+     SmartDashboard.putData("Auto Mode",autoChooser);
+
+ 
+  }
   /**
    * Use this method to define your trigger->command mappings. Triggers can be created via the
    * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary predicate, or via the
@@ -102,16 +113,18 @@ public class RobotContainer
     Command driveFieldOrientedAnglularVelocityKeyboard = drivebase.driveFieldOriented(driveAngularVelocityKeyboard);
     //Command driveSetpointGenKeyboard = drivebase.driveWithSetpointGeneratorFieldRelative(
         //driveDirectAngleKeyboard);
-
+    Command zeroNavx = Commands.runOnce(() -> drivebase.zeroGyro());
       drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
-    
+      driverXbox.button(7).whileTrue(zeroNavx);
       driverXbox.rightBumper().whileTrue(arm.goUp()).whileFalse(arm.ElevatorHold());
       driverXbox.leftBumper().whileTrue(arm.goDown()).whileFalse(arm.ElevatorHold());
       //algae intake/outtake
-      driverXbox.x().whileTrue(arm.AlgaeIntake()).whileFalse(arm.AlgaeHeld());
-      driverXbox.b().whileTrue(arm.AlgaeOuttake()).whileFalse(arm.AlgaeHeld());
+      driverXbox.b().whileTrue(arm.AlgaeIntake()).whileFalse(arm.AlgaeHeld());
+      driverXbox.x().whileTrue(arm.AlgaeOuttake()).whileFalse(arm.AlgaeHeld());
       driverXbox.povLeft().whileTrue(arm.coralleft()).whileFalse(arm.coralstop());
       driverXbox.povRight().whileTrue(arm.coralright()).whileFalse(arm.coralstop());
+      driverXbox.y().whileTrue(arm.gotolevel1());
+      driverXbox.a().whileTrue(arm.gotolevel2());
     
     }
 
