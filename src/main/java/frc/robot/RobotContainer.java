@@ -14,15 +14,19 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.commands.coral;
 import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.limelight;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.io.File;
 import swervelib.SwerveInputStream;
@@ -37,11 +41,14 @@ public class RobotContainer
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   final         CommandXboxController driverXbox = new CommandXboxController(0);
+  final CommandJoystick buttons = new CommandJoystick(1);
   // The robot's subsystems and commands are defined here...
   private final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
                                                                                 "swerve"));
                                                                                 
   private final Arm arm = new Arm();
+  private final limelight limelight = new limelight();
+  private final coral help = new coral(arm);
 
   /**
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
@@ -49,7 +56,7 @@ public class RobotContainer
   SwerveInputStream driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
                                                                 () -> driverXbox.getLeftY() * -1,
                                                                 () -> driverXbox.getLeftX() * -1)
-                                                            .withControllerRotationAxis(() -> driverXbox.getRightX()*-1)
+                                                            .withControllerRotationAxis(() -> driverXbox.getRightX())
                                                             .deadband(OperatorConstants.DEADBAND)
                                                             .scaleTranslation(1)
                                                             .allianceRelativeControl(true);
@@ -87,11 +94,14 @@ public class RobotContainer
     configureBindings();
     DriverStation.silenceJoystickConnectionWarning(true);
     //NamedCommands.registerCommand("test", Commands.print("I EXIST"));
-    NamedCommands.registerCommand("lvl1",arm.gotoAlgaelevel1());
-    NamedCommands.registerCommand("lvl2",arm.gotoAlgaelevel2());
-
-     autoChooser = AutoBuilder.buildAutoChooser("test");
-     SmartDashboard.putData("Auto Mode",autoChooser);
+    NamedCommands.registerCommand("lvl1",arm.gotolevel1());
+    NamedCommands.registerCommand("lvl2",arm.gotolevel2());
+    NamedCommands.registerCommand("lvl3",arm.gotolevel3());
+    NamedCommands.registerCommand("Algaelvl",arm.gotoAlgaelevel1());
+    NamedCommands.registerCommand("shootCoral",help);
+    NamedCommands.registerCommand("goDown", arm.gotoLow());
+     autoChooser = AutoBuilder.buildAutoChooser();
+     SmartDashboard.putData("Autos",autoChooser);
 
  
   }
@@ -114,8 +124,14 @@ public class RobotContainer
     //Command driveSetpointGenKeyboard = drivebase.driveWithSetpointGeneratorFieldRelative(
         //driveDirectAngleKeyboard);
     Command zeroNavx = Commands.runOnce(() -> drivebase.zeroGyro());
+    Command slowDown= Commands.runOnce(()-> drivebase.getSwerveDrive().setMaximumAllowableSpeeds(Constants.MAX_SPEED*0.25,1));
+    Command slowDownHalf = Commands.runOnce(()-> drivebase.getSwerveDrive().setMaximumAllowableSpeeds(Constants.MAX_SPEED*0.5, 2));
+    Command normalSpeed= Commands.runOnce(()-> drivebase.getSwerveDrive().setMaximumAllowableSpeeds(Constants.MAX_SPEED,4));
+      //Trigger armHigh = new Trigger(null, arm.slowItdown());
+      //armHigh.whileTrue(slowDownHalf).whileFalse(normalSpeed);
       drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
       driverXbox.button(7).whileTrue(zeroNavx);
+      driverXbox.rightTrigger().whileTrue(slowDown).whileFalse(normalSpeed);
       driverXbox.rightBumper().whileTrue(arm.goUp()).whileFalse(arm.ElevatorHold());
       driverXbox.leftBumper().whileTrue(arm.goDown()).whileFalse(arm.ElevatorHold());
       //algae intake/outtake
@@ -123,9 +139,14 @@ public class RobotContainer
       driverXbox.x().whileTrue(arm.AlgaeOuttake()).whileFalse(arm.AlgaeHeld());
       driverXbox.povLeft().whileTrue(arm.coralleft()).whileFalse(arm.coralstop());
       driverXbox.povRight().whileTrue(arm.coralright()).whileFalse(arm.coralstop());
-      driverXbox.y().whileTrue(arm.gotolevel1());
-      driverXbox.a().whileTrue(arm.gotolevel2());
-    
+      // driverXbox.y().whileTrue(arm.climbUp()).whileFalse(arm.climbStop());
+      //driverXbox.a().whileTrue(arm.climbDown()).whileFalse(arm.climbStop());
+      buttons.button(1).whileTrue(arm.gotolevel1()).whileFalse(arm.ElevatorHold());
+      buttons.button(2).whileTrue(arm.gotolevel2()).whileFalse(arm.ElevatorHold());
+      buttons.button(3).whileTrue(arm.gotolevel3()).whileFalse(arm.ElevatorHold());
+      buttons.button(4).whileTrue(arm.gotoAlgaelevel1()).whileFalse(arm.ElevatorHold());
+      buttons.button(5).whileTrue(arm.gotoAlgaelevel2()).whileFalse(arm.ElevatorHold());
+      //driverXbox.button(8).whileTrue(drivebase.driveCommand());
     }
 
   /**
@@ -136,7 +157,7 @@ public class RobotContainer
   public Command getAutonomousCommand()
   {
     // An example command will be run in autonomous
-    return drivebase.getAutonomousCommand("New Auto");
+    return autoChooser.getSelected();
   }
 
   public void setMotorBrake(boolean brake)

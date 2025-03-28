@@ -4,11 +4,17 @@
 
 package frc.robot.subsystems;
 
+import java.util.function.BooleanSupplier;
+
+import com.ctre.phoenix.motorcontrol.can.VictorSPX;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.spark.SparkMax;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
@@ -19,29 +25,31 @@ public class Arm extends SubsystemBase {
   double espeed;
   SparkMax intake1;
   SparkMax intake2;
-  SparkMax coral;
+  public SparkMax coral;
+  VictorSPX climb;
 
-  double l1 = 7.047;
-  double l12 = -7.07;
-  double l2 = 28.7;
-  double l22 = -28.7;
+  double l1 = 7.7;
+  double l12 = -7.7;
+  double l2 = 29.4;
+  double l22 = -29.4;
   double l3 = 65.3;
   double l32 = -65.3;
   double l4;
   double l42;
-  double a1 = 27.9;
-  double a12 = -27.9;
-  double a2 = 50.7;
-  double a22 = -50.7;
+  double a1 = 29.1;
+  double a12 = -29.;
+  double a2 = 52.3;
+  double a22 = -52.3;
 
   /* Creates a new ExampleSubsystem. */
   public Arm() {
     elevator1 = new SparkMax(26, MotorType.kBrushless);
     elevator2 = new SparkMax(25, MotorType.kBrushless);
-    espeed = 0.25;
+    espeed = 0.50;
     intake1 = new SparkMax(21, MotorType.kBrushless);
     intake2 = new SparkMax(22, MotorType.kBrushless);
     coral = new SparkMax(20, MotorType.kBrushless);
+    //climb = new VictorSPX(27);
 
   }
   private static double algaeIntakeSpeed = 0.75;
@@ -55,12 +63,20 @@ public class Arm extends SubsystemBase {
    */
   
 
-
+  //public Command climbUp(){
+   // return runOnce(()->{climb.set(0.15);});
+ // }
+  //public Command climbDown(){
+   // return runOnce(()->{climb.set(-0.15);});}
+   // public Command climbStop(){
+   //   return runOnce(()->{climb.set(0);});}
   public Command coralright(){
-    return runOnce(()->{coral.set(0.5);});
+    return run(()->{coral.set(0.5);});
   }
   public Command coralleft(){
-    return runOnce(()->{coral.set(-0.5);});}
+    return run(()->{coral.set(-0.5);});}
+
+
   public Command coralstop(){return runOnce(()->{coral.set(0);});}
   //make the elevator go up
   public Command goUp() {
@@ -115,23 +131,26 @@ public class Arm extends SubsystemBase {
     });
   }
 
+  public Command gotoLow(){
+    return run(()->{gotoLevel(0.2, -0.2);});
+  }
   public Command gotolevel1(){
-    return runOnce(()-> {gotoLevel(l1, l12);});
+    return run(()-> {gotoLevel(l1, l12);});
   }
   public Command gotolevel2(){
-    return runOnce(()-> {gotoLevel(l2, l22);});
+    return run(()-> {gotoLevel(l2, l22);});
   }
   public Command gotolevel3(){
-    return runOnce(()-> {gotoLevel(l3, l32);});
+    return run(()-> {gotoLevel(l3, l32);});
   }
   public Command gotolevel4(){
-    return runOnce(()-> {gotoLevel(l4, l42);});
+    return run(()-> {gotoLevel(l4, l42);});
   }
   public Command gotoAlgaelevel1(){
-    return runOnce(()-> {gotoLevel(a1, a12);});
+    return run(()-> {gotoLevel(a1, a12);});
   }
   public Command gotoAlgaelevel2(){
-    return runOnce(()-> {gotoLevel(a2, a22);});
+    return run(()-> {gotoLevel(a2, a22);});
   }
 
   //goto elevator level - get encoder values
@@ -140,7 +159,7 @@ public class Arm extends SubsystemBase {
         elevator1.set(espeed);
         elevator2.set(-espeed);
     }
-    else if (elevator1.getEncoder().getPosition() > level+0.5 && elevator2.getEncoder().getPosition() < level2-0.5){
+    else if (elevator1.getEncoder().getPosition() > level+1 && elevator2.getEncoder().getPosition() < level2-1){
       elevator1.set(-espeed);
         elevator2.set(espeed);
     }
@@ -149,7 +168,15 @@ public class Arm extends SubsystemBase {
       elevator2.set(-elevatorHoldSpeed);
     }
   }
-
+  
+  public BooleanSupplier slowItdown(){
+    if (elevator1.getAbsoluteEncoder().getPosition() > 0.7){
+      return ()->true;
+    }
+    else{
+      return ()->false;
+    }
+  }
   public boolean autotrue(){
     return true;
   }
@@ -188,6 +215,8 @@ public class Arm extends SubsystemBase {
   public void periodic() {
     SmartDashboard.putNumber("test",elevator1.getEncoder().getPosition());
     SmartDashboard.putNumber("test2",elevator2.getEncoder().getPosition());
+    SmartDashboard.putNumber("fuckoff", coral.getEncoder().getPosition());
+    //SmartDashboard.putNumber("climb", climb.getPosition().getValueAsDouble());
     // This method will be called once per scheduler run
 }
 
