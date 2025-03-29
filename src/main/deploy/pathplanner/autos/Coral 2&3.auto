@@ -29,6 +29,12 @@
               {
                 "type": "named",
                 "data": {
+                  "name": "stop"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
                   "name": "goDown"
                 }
               }
@@ -72,6 +78,12 @@
               {
                 "type": "named",
                 "data": {
+                  "name": "stop"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
                   "name": "goDown"
                 }
               }
@@ -110,6 +122,12 @@
                 "type": "named",
                 "data": {
                   "name": "shootCoral"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "stop"
                 }
               },
               {

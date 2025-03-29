@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import com.fasterxml.jackson.databind.util.Named;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -54,8 +55,8 @@ public class RobotContainer
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
    */
   SwerveInputStream driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
-                                                                () -> driverXbox.getLeftY() * -1,
-                                                                () -> driverXbox.getLeftX() * -1)
+                                                                () -> driverXbox.getLeftY() * 1,
+                                                                () -> driverXbox.getLeftX() * 1)
                                                             .withControllerRotationAxis(() -> driverXbox.getRightX())
                                                             .deadband(OperatorConstants.DEADBAND)
                                                             .scaleTranslation(1)
@@ -94,12 +95,13 @@ public class RobotContainer
     configureBindings();
     DriverStation.silenceJoystickConnectionWarning(true);
     //NamedCommands.registerCommand("test", Commands.print("I EXIST"));
-    NamedCommands.registerCommand("lvl1",arm.gotolevel1());
-    NamedCommands.registerCommand("lvl2",arm.gotolevel2());
-    NamedCommands.registerCommand("lvl3",arm.gotolevel3());
-    NamedCommands.registerCommand("Algaelvl",arm.gotoAlgaelevel1());
-    NamedCommands.registerCommand("shootCoral",help);
-    NamedCommands.registerCommand("goDown", arm.gotoLow());
+    NamedCommands.registerCommand("lvl1",arm.gotolevel1().withTimeout(0.5));
+    NamedCommands.registerCommand("lvl2",arm.gotolevel2().withTimeout(0.5));
+    NamedCommands.registerCommand("lvl3",arm.gotolevel3().withTimeout(0.5));
+    NamedCommands.registerCommand("Algaelvl",arm.gotoAlgaelevel1().withTimeout(0.5));
+    NamedCommands.registerCommand("shootCoral",arm.coralleft().withTimeout(0.5));
+    NamedCommands.registerCommand("stop", arm.coralstop().withTimeout(0.1));
+    NamedCommands.registerCommand("goDown", arm.gotoLow().withTimeout(0.5));
      autoChooser = AutoBuilder.buildAutoChooser();
      SmartDashboard.putData("Autos",autoChooser);
 
@@ -139,8 +141,8 @@ public class RobotContainer
       driverXbox.x().whileTrue(arm.AlgaeOuttake()).whileFalse(arm.AlgaeHeld());
       driverXbox.povLeft().whileTrue(arm.coralleft()).whileFalse(arm.coralstop());
       driverXbox.povRight().whileTrue(arm.coralright()).whileFalse(arm.coralstop());
-      // driverXbox.y().whileTrue(arm.climbUp()).whileFalse(arm.climbStop());
-      //driverXbox.a().whileTrue(arm.climbDown()).whileFalse(arm.climbStop());
+       driverXbox.y().whileTrue(arm.climbUp()).whileFalse(arm.climbStop());
+      driverXbox.a().whileTrue(arm.climbDown()).whileFalse(arm.climbStop());
       buttons.button(1).whileTrue(arm.gotolevel1()).whileFalse(arm.ElevatorHold());
       buttons.button(2).whileTrue(arm.gotolevel2()).whileFalse(arm.ElevatorHold());
       buttons.button(3).whileTrue(arm.gotolevel3()).whileFalse(arm.ElevatorHold());

@@ -11,6 +11,8 @@ import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.spark.SparkMax;
 
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -26,20 +28,21 @@ public class Arm extends SubsystemBase {
   SparkMax intake1;
   SparkMax intake2;
   public SparkMax coral;
-  VictorSPX climb;
+  SparkMax climb;
+  DigitalInput stopClimb;
 
-  double l1 = 7.7;
-  double l12 = -7.7;
-  double l2 = 29.4;
-  double l22 = -29.4;
+  double l1 = 8.3;
+  double l12 = -8.3;
+  double l2 = 29.8;
+  double l22 = -29.8;
   double l3 = 65.3;
   double l32 = -65.3;
   double l4;
   double l42;
-  double a1 = 29.1;
-  double a12 = -29.;
-  double a2 = 52.3;
-  double a22 = -52.3;
+  double a1 = 31.1;
+  double a12 = -31.1;
+  double a2 = 54.1;
+  double a22 = -54.1;
 
   /* Creates a new ExampleSubsystem. */
   public Arm() {
@@ -49,7 +52,8 @@ public class Arm extends SubsystemBase {
     intake1 = new SparkMax(21, MotorType.kBrushless);
     intake2 = new SparkMax(22, MotorType.kBrushless);
     coral = new SparkMax(20, MotorType.kBrushless);
-    //climb = new VictorSPX(27);
+    climb = new SparkMax(27,MotorType.kBrushless);
+    stopClimb = new DigitalInput(0);
 
   }
   private static double algaeIntakeSpeed = 0.75;
@@ -63,18 +67,37 @@ public class Arm extends SubsystemBase {
    */
   
 
-  //public Command climbUp(){
-   // return runOnce(()->{climb.set(0.15);});
- // }
-  //public Command climbDown(){
-   // return runOnce(()->{climb.set(-0.15);});}
-   // public Command climbStop(){
-   //   return runOnce(()->{climb.set(0);});}
+  public Command climbUp(){
+   return runOnce(()->{climb.set(0.1);});
+ }
+  public Command climbDown(){
+   return runOnce(()->{climb.set(-0.1);}
+   );}
+   public Command climbStop(){
+   return runOnce(()->{climb.set(0);});}
+
   public Command coralright(){
     return run(()->{coral.set(0.5);});
   }
   public Command coralleft(){
     return run(()->{coral.set(-0.5);});}
+  
+  public Command coral(){
+    return run(()->{help();});
+  }
+  public Command coralhelp(){
+    return run(()->{helpme();});
+  }
+  public void help(){
+    coral.set(-0.5);
+  }
+  public void helpme(){
+    double neededval = coral.getEncoder().getPosition() - 10;
+    if (coral.getEncoder().getPosition() < neededval){
+      coral.set(-0.5);
+    }
+    else{coral.set(0);}
+  }
 
 
   public Command coralstop(){return runOnce(()->{coral.set(0);});}
@@ -169,6 +192,7 @@ public class Arm extends SubsystemBase {
     }
   }
   
+  //not un used currently, should slow down robot when proper uses added
   public BooleanSupplier slowItdown(){
     if (elevator1.getAbsoluteEncoder().getPosition() > 0.7){
       return ()->true;
@@ -177,45 +201,13 @@ public class Arm extends SubsystemBase {
       return ()->false;
     }
   }
-  public boolean autotrue(){
-    return true;
-  }
-
-
-  public Command Autogotolevel1(){
-    return runOnce(() -> {gotoLevel(l1, l12);});
-  }
-  public Command Autogotolevel2(){
-    return runOnce(()-> {if (autotrue()== true){gotoLevel(l2, l22);}});
-  }
-  public Command Autogotolevel3(){
-    return runOnce(()-> {if (autotrue()== true){gotoLevel(l3, l32);}});
-  }
-  public Command Autogotolevel4(){
-    return runOnce(()-> {if (autotrue()== true){gotoLevel(l4, l42);}});
-  }
-  public Command AutogotoAlgaelevel1(){
-    return runOnce(()-> {if (autotrue()== true){gotoLevel(a1, a12);}});
-  }
-  public Command AutogotoAlgaelevel2(){
-    return runOnce(()-> {if (autotrue()== true){gotoLevel(a2, a22);}});
-  }
-
-  /**
-   * An example method querying a boolean state of the subsystem (for example, a digital sensor).
-   *
-   * @return value of some boolean subsystem state, such as a digital sensor.
-   */
-  public boolean exampleCondition() {
-    // Query some boolean state, such as a digital sensor.
-    return false;
-  }
 
   @Override
   public void periodic() {
+    //Throwing smartdashbaord values
     SmartDashboard.putNumber("test",elevator1.getEncoder().getPosition());
     SmartDashboard.putNumber("test2",elevator2.getEncoder().getPosition());
-    SmartDashboard.putNumber("fuckoff", coral.getEncoder().getPosition());
+    SmartDashboard.putNumber("fuckoff", climb.getEncoder().getPosition());
     //SmartDashboard.putNumber("climb", climb.getPosition().getValueAsDouble());
     // This method will be called once per scheduler run
 }
