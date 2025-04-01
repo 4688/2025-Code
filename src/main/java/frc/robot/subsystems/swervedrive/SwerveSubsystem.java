@@ -437,7 +437,7 @@ public class SwerveSubsystem extends SubsystemBase
   public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier headingX,
                               DoubleSupplier headingY)
   {
-    // swerveDrive.setHeadingCorrection(true); // Normally you would want heading correction for this kind of control.
+    //swerveDrive.setHeadingCorrection(true); // Normally you would want heading correction for this kind of control.
     return run(() -> {
 
       Translation2d scaledInputs = SwerveMath.scaleTranslation(new Translation2d(translationX.getAsDouble(),
@@ -472,6 +472,16 @@ public class SwerveSubsystem extends SubsystemBase
                       rotation,
                       fieldRelative,
                       false); // Open loop is disabled since it shouldn't be used most of the time.
+  }
+
+  //turn to function
+  public void turnto(double turn){
+    if (getHeading().getDegrees() > turn){
+      drive(new Translation2d(0,0),1,true);
+    }
+    else{
+      drive(new Translation2d(0,0),0,true);
+    }
   }
 
   /**

@@ -25,7 +25,6 @@ import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.commands.coral;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.limelight;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
@@ -41,7 +40,7 @@ public class RobotContainer
 {
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
-  final         CommandXboxController driverXbox = new CommandXboxController(0);
+  final CommandXboxController driverXbox = new CommandXboxController(0);
   final CommandJoystick buttons = new CommandJoystick(1);
   // The robot's subsystems and commands are defined here...
   private final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
@@ -49,7 +48,6 @@ public class RobotContainer
                                                                                 
   private final Arm arm = new Arm();
   private final limelight limelight = new limelight();
-  private final coral help = new coral(arm);
 
   /**
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
@@ -75,14 +73,14 @@ public class RobotContainer
   SwerveInputStream driveRobotOriented = driveAngularVelocity.copy().robotRelative(true)
                                                              .allianceRelativeControl(false);
 
-  SwerveInputStream driveAngularVelocityKeyboard = SwerveInputStream.of(drivebase.getSwerveDrive(),
+  /*SwerveInputStream driveAngularVelocityKeyboard = SwerveInputStream.of(drivebase.getSwerveDrive(),
                                                                         () -> -driverXbox.getLeftY(),
                                                                         () -> -driverXbox.getLeftX())
                                                                     .withControllerRotationAxis(() -> driverXbox.getRawAxis(
                                                                         2))
                                                                     .deadband(OperatorConstants.DEADBAND)
                                                                     .scaleTranslation(0.8)
-                                                                    .allianceRelativeControl(true);
+                                                                    .allianceRelativeControl(true);*/
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -95,13 +93,13 @@ public class RobotContainer
     configureBindings();
     DriverStation.silenceJoystickConnectionWarning(true);
     //NamedCommands.registerCommand("test", Commands.print("I EXIST"));
-    NamedCommands.registerCommand("lvl1",arm.gotolevel1().withTimeout(0.5));
-    NamedCommands.registerCommand("lvl2",arm.gotolevel2().withTimeout(0.5));
-    NamedCommands.registerCommand("lvl3",arm.gotolevel3().withTimeout(0.5));
-    NamedCommands.registerCommand("Algaelvl",arm.gotoAlgaelevel1().withTimeout(0.5));
-    NamedCommands.registerCommand("shootCoral",arm.coralleft().withTimeout(0.5));
+    NamedCommands.registerCommand("lvl1",arm.gotolevel1().withTimeout(1));
+    NamedCommands.registerCommand("lvl2",arm.gotolevel2().withTimeout(1));
+    NamedCommands.registerCommand("lvl3",arm.gotolevel3().withTimeout(1));
+    NamedCommands.registerCommand("Algaelvl",arm.gotoAlgaelevel1().withTimeout(1));
+    NamedCommands.registerCommand("shootCoral",arm.coralleft().withTimeout(1));
     NamedCommands.registerCommand("stop", arm.coralstop().withTimeout(0.1));
-    NamedCommands.registerCommand("goDown", arm.gotoLow().withTimeout(0.5));
+    NamedCommands.registerCommand("goDown", arm.gotoLow().withTimeout(1));
      autoChooser = AutoBuilder.buildAutoChooser();
      SmartDashboard.putData("Autos",autoChooser);
 
@@ -122,15 +120,14 @@ public class RobotContainer
     Command driveSetpointGen = drivebase.driveWithSetpointGeneratorFieldRelative(
         driveDirectAngle);
    // Command driveFieldOrientedDirectAngleKeyboard      = drivebase.driveFieldOriented(driveDirectAngleKeyboard);
-    Command driveFieldOrientedAnglularVelocityKeyboard = drivebase.driveFieldOriented(driveAngularVelocityKeyboard);
+    //Command driveFieldOrientedAnglularVelocityKeyboard = drivebase.driveFieldOriented(driveAngularVelocityKeyboard);
     //Command driveSetpointGenKeyboard = drivebase.driveWithSetpointGeneratorFieldRelative(
         //driveDirectAngleKeyboard);
-    Command zeroNavx = Commands.runOnce(() -> drivebase.zeroGyro());
+    Command zeroNavx = Commands.runOnce(() -> drivebase.zeroGyroWithAlliance());
     Command slowDown= Commands.runOnce(()-> drivebase.getSwerveDrive().setMaximumAllowableSpeeds(Constants.MAX_SPEED*0.25,1));
     Command slowDownHalf = Commands.runOnce(()-> drivebase.getSwerveDrive().setMaximumAllowableSpeeds(Constants.MAX_SPEED*0.5, 2));
     Command normalSpeed= Commands.runOnce(()-> drivebase.getSwerveDrive().setMaximumAllowableSpeeds(Constants.MAX_SPEED,4));
-      //Trigger armHigh = new Trigger(null, arm.slowItdown());
-      //armHigh.whileTrue(slowDownHalf).whileFalse(normalSpeed);
+    Command turnto90 = Commands.runOnce(()->drivebase.turnto(90));
       drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
       driverXbox.button(7).whileTrue(zeroNavx);
       driverXbox.rightTrigger().whileTrue(slowDown).whileFalse(normalSpeed);
@@ -148,7 +145,7 @@ public class RobotContainer
       buttons.button(3).whileTrue(arm.gotolevel3()).whileFalse(arm.ElevatorHold());
       buttons.button(4).whileTrue(arm.gotoAlgaelevel1()).whileFalse(arm.ElevatorHold());
       buttons.button(5).whileTrue(arm.gotoAlgaelevel2()).whileFalse(arm.ElevatorHold());
-      //driverXbox.button(8).whileTrue(drivebase.driveCommand());
+      driverXbox.povUp().whileTrue(turnto90).whileFalse(null);
     }
 
   /**
